@@ -52,13 +52,16 @@ int cbm_replace_binary(const char *path, const unsigned char *data, int len, int
 
 /* ── Skill file management ────────────────────────────────────── */
 
-/* Number of skill files. */
-#define CBM_SKILL_COUNT 4
+#include "cli/embedded_skills.h" /* cbm_skill_file_t */
 
-/* Skill name/content pair. */
+/* Number of skills. */
+#define CBM_SKILL_COUNT 1
+
+/* A skill: name, primary content, and all files to install. */
 typedef struct {
-    const char *name;    /* e.g. "codebase-memory-exploring" */
-    const char *content; /* full SKILL.md content */
+    const char *name;                /* e.g. "codebase-memory" */
+    const char *content;             /* SKILL.md content (primary) */
+    const cbm_skill_file_t *files;   /* NULL-terminated file list */
 } cbm_skill_t;
 
 /* Get the array of skill definitions. */

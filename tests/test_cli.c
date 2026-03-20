@@ -422,7 +422,7 @@ TEST(cli_skill_creation) {
     int written = cbm_install_skills(skills_dir, false, false);
     ASSERT_EQ(written, CBM_SKILL_COUNT);
 
-    /* Verify all 4 skills exist and have content */
+    /* Verify SKILL.md exists and has content */
     const cbm_skill_t *sk = cbm_get_skills();
     for (int i = 0; i < CBM_SKILL_COUNT; i++) {
         char path[1024];
@@ -434,6 +434,15 @@ TEST(cli_skill_creation) {
         ASSERT(strncmp(data, "---\n", 4) == 0);
         /* Check name field */
         ASSERT(strstr(data, sk[i].name) != NULL);
+
+        /* Verify all reference files are also installed */
+        for (int j = 0; sk[i].files && sk[i].files[j].rel_path; j++) {
+            char fpath[1024];
+            snprintf(fpath, sizeof(fpath), "%s/%s/%s",
+                     skills_dir, sk[i].name, sk[i].files[j].rel_path);
+            struct stat st;
+            ASSERT_EQ(stat(fpath, &st), 0);
+        }
     }
 
     test_rmdir_r(tmpdir);
@@ -546,42 +555,39 @@ TEST(cli_remove_old_monolithic_skill) {
 }
 
 TEST(cli_skill_files_content) {
-    /* Port of TestSkillFilesContent */
+    /* Consolidated skill with progressive disclosure via references/ */
     const cbm_skill_t *sk = cbm_get_skills();
-    ASSERT_EQ(CBM_SKILL_COUNT, 4);
+    ASSERT_EQ(CBM_SKILL_COUNT, 1);
 
-    /* Check exploring skill */
-    bool found_exploring = false, found_tracing = false;
-    bool found_quality = false, found_reference = false;
-    for (int i = 0; i < CBM_SKILL_COUNT; i++) {
-        if (strcmp(sk[i].name, "codebase-memory-exploring") == 0) {
-            found_exploring = true;
-            ASSERT(strstr(sk[i].content, "search_graph") != NULL);
-            ASSERT(strstr(sk[i].content, "get_graph_schema") != NULL);
-        }
-        if (strcmp(sk[i].name, "codebase-memory-tracing") == 0) {
-            found_tracing = true;
-            ASSERT(strstr(sk[i].content, "trace_path") != NULL);
-            ASSERT(strstr(sk[i].content, "direction") != NULL);
-            ASSERT(strstr(sk[i].content, "detect_changes") != NULL);
-        }
-        if (strcmp(sk[i].name, "codebase-memory-quality") == 0) {
-            found_quality = true;
-            ASSERT(strstr(sk[i].content, "max_degree=0") != NULL);
-            ASSERT(strstr(sk[i].content, "exclude_entry_points") != NULL);
-        }
-        if (strcmp(sk[i].name, "codebase-memory-reference") == 0) {
-            found_reference = true;
-            ASSERT(strstr(sk[i].content, "query_graph") != NULL);
-            ASSERT(strstr(sk[i].content, "Cypher") != NULL);
-            ASSERT(strstr(sk[i].content, "14 total") != NULL);
-        }
+    /* The single consolidated skill */
+    ASSERT(strcmp(sk[0].name, "codebase-memory") == 0);
+
+    /* SKILL.md content: quick decision matrix + gotchas */
+    ASSERT(strstr(sk[0].content, "search_graph") != NULL);
+    ASSERT(strstr(sk[0].content, "trace_call_path") != NULL);
+    ASSERT(strstr(sk[0].content, "direction") != NULL);
+    ASSERT(strstr(sk[0].content, "detect_changes") != NULL);
+    ASSERT(strstr(sk[0].content, "max_degree=0") != NULL);
+    ASSERT(strstr(sk[0].content, "exclude_entry_points") != NULL);
+    ASSERT(strstr(sk[0].content, "query_graph") != NULL);
+    ASSERT(strstr(sk[0].content, "Cypher") != NULL);
+    ASSERT(strstr(sk[0].content, "Gotchas") != NULL);
+
+    /* Progressive disclosure: references to sub-files */
+    ASSERT(strstr(sk[0].content, "references/exploring.md") != NULL);
+    ASSERT(strstr(sk[0].content, "references/tracing.md") != NULL);
+    ASSERT(strstr(sk[0].content, "references/quality.md") != NULL);
+    ASSERT(strstr(sk[0].content, "references/tool-reference.md") != NULL);
+
+    /* Files array is populated (NULL-terminated) */
+    ASSERT_NOT_NULL(sk[0].files);
+    int file_count = 0;
+    for (int j = 0; sk[0].files[j].rel_path; j++) {
+        file_count++;
     }
-    ASSERT_TRUE(found_exploring);
-    ASSERT_TRUE(found_tracing);
-    ASSERT_TRUE(found_quality);
-    ASSERT_TRUE(found_reference);
-    PASS();
+    ASSERT(file_count >= 5); /* SKILL.md + 4 references */
+
+   PASS();
 }
 
 TEST(cli_codex_instructions) {
@@ -2100,11 +2106,12 @@ TEST(cli_remove_gemini_hooks) {
  * ═══════════════════════════════════════════════════════════════════ */
 
 TEST(cli_skill_descriptions_directive) {
-    /* Verify all skill descriptions use directive pattern (ALWAYS invoke) */
+    /* Verify skill content has YAML frontmatter with description trigger words */
     const cbm_skill_t *sk = cbm_get_skills();
     for (int i = 0; i < CBM_SKILL_COUNT; i++) {
-        ASSERT(strstr(sk[i].content, "ALWAYS") != NULL);
-        ASSERT(strstr(sk[i].content, "Do not") != NULL);
+        ASSERT(strstr(sk[i].content, "---\n") != NULL);
+        ASSERT(strstr(sk[i].content, "description:") != NULL);
+        ASSERT(strstr(sk[i].content, "Triggers on:") != NULL);
     }
     PASS();
 }

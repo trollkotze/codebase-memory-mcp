@@ -315,112 +315,11 @@ int cbm_replace_binary(const char *path, const unsigned char *data, int len, int
 }
 
 /* ── Skill file content (embedded) ────────────────────────────── */
-
-static const char skill_exploring_content[] =
-    "---\n"
-    "name: codebase-memory-exploring\n"
-    "description: Codebase knowledge graph expert. ALWAYS invoke this skill when the user "
-    "explores code, searches for functions/classes/routes, asks about architecture, or needs "
-    "codebase orientation. Do not use Grep, Glob, or file search directly — use "
-    "codebase-memory-mcp search_graph and get_architecture first.\n"
-    "---\n"
-    "\n"
-    "# Codebase Exploration\n"
-    "\n"
-    "Use codebase-memory-mcp tools to explore the codebase:\n"
-    "\n"
-    "## Workflow\n"
-    "1. `get_graph_schema` — understand what node/edge types exist\n"
-    "2. `search_graph` — find functions, classes, routes by pattern\n"
-    "3. `get_code_snippet` — read specific function implementations\n"
-    "4. `get_architecture` — get high-level project summary\n"
-    "\n"
-    "## Tips\n"
-    "- Use `search_graph(name_pattern=\".*Pattern.*\")` for fuzzy matching\n"
-    "- Use `search_graph(label=\"Route\")` to find HTTP routes\n"
-    "- Use `search_graph(label=\"Function\", file_pattern=\"*.go\")` to scope by language\n";
-
-static const char skill_tracing_content[] =
-    "---\n"
-    "name: codebase-memory-tracing\n"
-    "description: Call chain and dependency expert. ALWAYS invoke this skill when the user "
-    "asks who calls a function, what a function calls, needs impact analysis, or traces "
-    "dependencies. Do not grep for function names directly — use codebase-memory-mcp "
-    "trace_path first.\n"
-    "---\n"
-    "\n"
-    "# Call Tracing & Impact Analysis\n"
-    "\n"
-    "Use codebase-memory-mcp tools to trace call paths:\n"
-    "\n"
-    "## Workflow\n"
-    "1. `search_graph(name_pattern=\".*FuncName.*\")` — find exact function name\n"
-    "2. `trace_path(function_name=\"FuncName\", direction=\"both\")` — trace callers + "
-    "callees\n"
-    "3. `detect_changes` — find what changed and assess risk_labels\n"
-    "\n"
-    "## Direction Options\n"
-    "- `inbound` — who calls this function?\n"
-    "- `outbound` — what does this function call?\n"
-    "- `both` — full context (callers + callees)\n";
-
-static const char skill_quality_content[] =
-    "---\n"
-    "name: codebase-memory-quality\n"
-    "description: Code quality analysis expert. ALWAYS invoke this skill when the user asks "
-    "about dead code, unused functions, complexity, refactor candidates, or cleanup "
-    "opportunities. Do not search files manually — use codebase-memory-mcp search_graph "
-    "with degree filters first.\n"
-    "---\n"
-    "\n"
-    "# Code Quality Analysis\n"
-    "\n"
-    "Use codebase-memory-mcp tools for quality analysis:\n"
-    "\n"
-    "## Dead Code Detection\n"
-    "- `search_graph(max_degree=0, exclude_entry_points=true)` — find unreferenced functions\n"
-    "- `search_graph(max_degree=0, label=\"Function\")` — unreferenced functions only\n"
-    "\n"
-    "## Complexity Analysis\n"
-    "- `search_graph(min_degree=10)` — high fan-out functions\n"
-    "- `search_graph(label=\"Function\", sort_by=\"degree\")` — most-connected functions\n";
-
-static const char skill_reference_content[] =
-    "---\n"
-    "name: codebase-memory-reference\n"
-    "description: Codebase-memory-mcp reference guide. ALWAYS invoke this skill when the user "
-    "asks about MCP tools, graph queries, Cypher syntax, edge types, or how to use the "
-    "knowledge graph. Do not guess tool parameters — load this reference first.\n"
-    "---\n"
-    "\n"
-    "# Codebase Memory MCP Reference\n"
-    "\n"
-    "## 14 total MCP Tools\n"
-    "- `index_repository` — index a project\n"
-    "- `index_status` — check indexing progress\n"
-    "- `detect_changes` — find what changed since last index\n"
-    "- `search_graph` — find nodes by pattern\n"
-    "- `search_code` — text search in source\n"
-    "- `query_graph` — Cypher query language\n"
-    "- `trace_path` — call chain traversal\n"
-    "- `get_code_snippet` — read function source\n"
-    "- `get_graph_schema` — node/edge type catalog\n"
-    "- `get_architecture` — high-level summary\n"
-    "- `list_projects` — indexed projects\n"
-    "- `delete_project` — remove a project\n"
-    "- `manage_adr` — architecture decision records\n"
-    "- `ingest_traces` — import runtime traces\n"
-    "\n"
-    "## Edge Types\n"
-    "CALLS, HTTP_CALLS, ASYNC_CALLS, IMPORTS, DEFINES, DEFINES_METHOD,\n"
-    "HANDLES, IMPLEMENTS, CONTAINS_FILE, CONTAINS_FOLDER, CONTAINS_PACKAGE\n"
-    "\n"
-    "## Cypher Examples\n"
-    "```\n"
-    "MATCH (f:Function) WHERE f.name =~ '.*Handler.*' RETURN f.name, f.file_path\n"
-    "MATCH (a)-[r:CALLS]->(b) WHERE a.name = 'main' RETURN b.name\n"
-    "MATCH (a)-[r:HTTP_CALLS]->(b) RETURN a.name, b.name, r.url_path\n"
-    "```\n";
+/* Skill content is now embedded from .md files by scripts/embed-skills.sh.
+ * Source: cmd/codebase-memory-mcp/assets/skills/codebase-memory/
+ * Generated: src/cli/embedded_skills.c
+ * To regenerate: scripts/embed-skills.sh assets/skills/codebase-memory src/cli/embedded_skills.c
+ */
 
 static const char codex_instructions_content[] =
     "# Codebase Knowledge Graph\n"
@@ -437,10 +336,7 @@ static const char codex_instructions_content[] =
     "Always prefer graph tools over grep for code discovery.\n";
 
 static const cbm_skill_t skills[CBM_SKILL_COUNT] = {
-    {"codebase-memory-exploring", skill_exploring_content},
-    {"codebase-memory-tracing", skill_tracing_content},
-    {"codebase-memory-quality", skill_quality_content},
-    {"codebase-memory-reference", skill_reference_content},
+    {"codebase-memory", cbm_embedded_skill_content, cbm_embedded_skill_files},
 };
 
 const cbm_skill_t *cbm_get_skills(void) {
@@ -495,7 +391,7 @@ int cbm_install_skills(const char *skills_dir, bool force, bool dry_run) {
         char file_path[1024];
         snprintf(file_path, sizeof(file_path), "%s/SKILL.md", skill_path);
 
-        /* Check if already exists */
+        /* Check if already exists (SKILL.md is the sentinel for all files) */
         if (!force) {
             struct stat st;
             if (stat(file_path, &st) == 0) {
@@ -512,12 +408,28 @@ int cbm_install_skills(const char *skills_dir, bool force, bool dry_run) {
             continue;
         }
 
-        FILE *f = fopen(file_path, "w");
-        if (!f) {
-            continue;
+        /* Write all files from the embedded file list */
+        const cbm_skill_file_t *files = skills[i].files;
+        for (int j = 0; files && files[j].rel_path; j++) {
+            char fpath[1024];
+            snprintf(fpath, sizeof(fpath), "%s/%s", skill_path, files[j].rel_path);
+
+            /* Create parent directory for nested files (e.g. references/) */
+            char dir_buf[1024];
+            snprintf(dir_buf, sizeof(dir_buf), "%s", fpath);
+            char *last_slash = strrchr(dir_buf, '/');
+            if (last_slash && last_slash != dir_buf) {
+                *last_slash = '\0';
+                (void)mkdirp(dir_buf, DIR_PERMS);
+            }
+
+            FILE *f = fopen(fpath, "w");
+            if (!f) {
+                continue;
+            }
+            (void)fwrite(files[j].content, 1, strlen(files[j].content), f);
+            (void)fclose(f);
         }
-        (void)fwrite(skills[i].content, 1, strlen(skills[i].content), f);
-        (void)fclose(f);
         count++;
     }
     return count;
