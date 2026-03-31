@@ -1,10 +1,10 @@
 # Call Chain Tracing
 
-One `trace_call_path` call replaces dozens of grep searches across files.
+One `trace_path` call replaces dozens of grep searches across files.
 
 ## Step 1: Discover the exact function name
 
-`trace_call_path` requires an **exact** name match. Discover it first with regex:
+`trace_path` requires an **exact** name match. Discover it first with regex:
 
 ```
 search_graph(name_pattern=".*Order.*", label="Function")
@@ -19,19 +19,19 @@ Useful regex patterns:
 ## Step 2: Trace callers (who calls this?)
 
 ```
-trace_call_path(function_name="ProcessOrder", direction="inbound", depth=3)
+trace_path(function_name="ProcessOrder", direction="inbound", depth=3)
 ```
 
 ## Step 3: Trace callees (what does this call?)
 
 ```
-trace_call_path(function_name="ProcessOrder", direction="outbound", depth=3)
+trace_path(function_name="ProcessOrder", direction="outbound", depth=3)
 ```
 
 ## Step 4: Full context (both)
 
 ```
-trace_call_path(function_name="ProcessOrder", direction="both", depth=3)
+trace_path(function_name="ProcessOrder", direction="both", depth=3)
 ```
 
 **Always use `direction="both"` for complete context.** Cross-service HTTP_CALLS edges appear as inbound edges — `direction="outbound"` alone misses them.
@@ -58,7 +58,7 @@ query_graph(query="MATCH (a)-[r:HTTP_CALLS]->(b) WHERE r.url_path CONTAINS '/ord
 
 ```
 search_graph(name_pattern=".*CreateTask.*|.*send_to_pubsub.*")
-trace_call_path(function_name="CreateMultidataTask", direction="both")
+trace_path(function_name="CreateMultidataTask", direction="both")
 ```
 
 ## Interface Implementations
@@ -76,7 +76,7 @@ query_graph(query="MATCH (a)-[r:USAGE]->(b) WHERE b.name = 'ProcessOrder' RETURN
 ## Risk-Classified Impact Analysis
 
 ```
-trace_call_path(function_name="ProcessOrder", direction="inbound", depth=3, risk_labels=true)
+trace_path(function_name="ProcessOrder", direction="inbound", depth=3, risk_labels=true)
 ```
 
 Returns nodes with `risk` (CRITICAL/HIGH/MEDIUM/LOW) based on hop depth. Hop 1=CRITICAL, 2=HIGH, 3=MEDIUM, 4+=LOW.
